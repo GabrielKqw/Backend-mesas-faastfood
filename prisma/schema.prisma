@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CLIENT
+  ADMIN
+}
+
+enum TableStatus {
+  FREE
+  OCCUPIED
+  WAITING_CLEANUP
+  RESERVED
+}
+
+enum ReservationStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  COMPLETED
+}
+
+enum OrderStatus {
+  PENDING
+  IN_PREPARATION
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      UserRole @default(CLIENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reservations Reservation[]
+  orders       Order[]
+  queueEntries QueueEntry[]
+
+  @@map("users")
+}
+
+model Table {
+  id        String      @id @default(cuid())
+  number    Int         @unique
+  capacity  Int
+  status    TableStatus @default(FREE)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  reservations Reservation[]
+  orders       Order[]
+
+  @@map("tables")
+}
+
+model Reservation {
+  id          String           @id @default(cuid())
+  userId      String
+  tableId     String
+  status      ReservationStatus @default(ACTIVE)
+  expiresAt   DateTime
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  table Table @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@map("reservations")
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  userId      String
+  tableId     String
+  status      OrderStatus @default(PENDING)
+  totalAmount Float?
+  items       Json?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  table Table @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@map("orders")
+}
+
+model QueueEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  position  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+  @@map("queue_entries")
+}

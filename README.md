@@ -1,203 +1,242 @@
-# 🍔 FastFood Tables Manager
+# 🚀 FastFood Tables - Backend API
 
-Sistema completo de gerenciamento de mesas para restaurantes fastfood, desenvolvido com NestJS, Prisma, PostgreSQL, Next.js e Socket.io.
+API REST robusta e segura para gerenciamento de mesas de restaurantes fastfood, construída com NestJS, Prisma e PostgreSQL.
 
-## 🚀 Funcionalidades
+## 🛠️ Stack Tecnológica
 
-### Frontend (Next.js + Tailwind)
-- **Página do Cliente:**
-  - Listagem das mesas disponíveis e ocupadas em tempo real
-  - Opção para reservar mesa (com limite de tempo de 15 minutos)
-  - Fila de espera quando todas as mesas estiverem ocupadas
-  - Visualização do cardápio integrado
+- **Framework:** NestJS 10.x
+- **Database:** PostgreSQL + Prisma ORM
+- **Authentication:** JWT + Passport
+- **Real-time:** Socket.io
+- **Security:** Helmet, Rate Limiting, Input Sanitization
+- **Validation:** Class-validator + Class-transformer
+- **Language:** TypeScript (strict mode)
 
-- **Página do Admin:**
-  - Dashboard com status das mesas (livre, ocupada, aguardando limpeza)
-  - Atribuir pedidos às mesas
-  - Finalizar e liberar mesa
-  - Gerenciamento da fila de espera
-
-### Backend (NestJS + Prisma + PostgreSQL)
-- **CRUD de Mesas:**
-  - Criar mesas com capacidade (2, 4, 6 lugares)
-  - Atualizar status da mesa (livre, ocupada, aguardando)
-
-- **CRUD de Reservas:**
-  - Reservas feitas pelos clientes (com tempo limite)
-  - Cancelamento automático após expiração
-
-- **CRUD de Pedidos:**
-  - Vincular pedidos às mesas
-  - Fechar pedido e liberar mesa
-
-- **Sistema de Fila de Espera:**
-  - Se todas as mesas estiverem ocupadas, salvar clientes em fila
-  - Aviso quando mesa ficar disponível
-
-## 🛠️ Tecnologias Utilizadas
-
-### Backend
-- **NestJS** - Framework Node.js
-- **Prisma** - ORM para banco de dados
-- **PostgreSQL** - Banco de dados
-- **JWT** - Autenticação
-- **Socket.io** - Comunicação em tempo real
-- **bcryptjs** - Criptografia de senhas
-
-### Frontend
-- **Next.js 14** - Framework React
-- **TypeScript** - Tipagem estática
-- **Tailwind CSS** - Estilização
-- **Socket.io Client** - Comunicação em tempo real
-- **React Hook Form** - Gerenciamento de formulários
-- **Zod** - Validação de dados
-- **Axios** - Cliente HTTP
-
-## 📦 Instalação e Configuração
+## 🔧 Configuração do Ambiente
 
 ### Pré-requisitos
 - Node.js 18+
-- PostgreSQL
+- PostgreSQL 14+
 - npm ou yarn
 
-### 1. Clone o repositório
-```bash
-git clone <url-do-repositorio>
-cd fastfood-tables-manager
-```
+### Instalação
 
-### 2. Configure o Backend
 ```bash
-cd backend
+# Instalar dependências
 npm install
 
-# Configure as variáveis de ambiente
+# Configurar variáveis de ambiente
 cp env.example .env
-# Edite o arquivo .env com suas configurações
 
-# Execute as migrações do banco
+# Configurar banco de dados
 npx prisma migrate dev
-npx prisma generate
 
-# Inicie o servidor de desenvolvimento
+# Popular banco com dados iniciais
+npm run prisma:seed
+
+# Iniciar em modo desenvolvimento
 npm run start:dev
 ```
 
-### 3. Configure o Frontend
-```bash
-cd frontend
-npm install
+## 🔐 Variáveis de Ambiente
 
-# Configure as variáveis de ambiente
-# Crie um arquivo .env.local com:
-# NEXT_PUBLIC_BACKEND_URL=http://localhost:3001
-
-# Inicie o servidor de desenvolvimento
-npm run dev
-```
-
-### 4. Execute ambos simultaneamente
-```bash
-# Na raiz do projeto
-npm run dev
-```
-
-## 🗄️ Estrutura do Banco de Dados
-
-### Tabelas Principais
-- **users** - Usuários (clientes e admins)
-- **tables** - Mesas do restaurante
-- **reservations** - Reservas de mesas
-- **orders** - Pedidos vinculados às mesas
-- **queue_entries** - Fila de espera
-
-### Enums
-- **UserRole**: CLIENT, ADMIN
-- **TableStatus**: FREE, OCCUPIED, WAITING_CLEANUP, RESERVED
-- **ReservationStatus**: ACTIVE, EXPIRED, CANCELLED, COMPLETED
-- **OrderStatus**: PENDING, IN_PREPARATION, READY, DELIVERED, CANCELLED
-
-## 🔧 Variáveis de Ambiente
-
-### Backend (.env)
 ```env
-DATABASE_URL="postgresql://username:password@localhost:5432/fastfood_tables?schema=public"
-JWT_SECRET="your-super-secret-jwt-key"
+# Database
+DATABASE_URL="postgresql://username:password@localhost:5432/fastfood_tables"
+
+# JWT Configuration
+JWT_SECRET="your-super-secret-jwt-key-minimum-32-characters"
 JWT_EXPIRES_IN="24h"
+
+# Security
+BCRYPT_ROUNDS=12
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX=100
+
+# Server
 PORT=3001
 FRONTEND_URL="http://localhost:3000"
+NODE_ENV="development"
 ```
 
-### Frontend (.env.local)
-```env
-NEXT_PUBLIC_BACKEND_URL="http://localhost:3001"
+## 📚 Scripts Disponíveis
+
+```bash
+# Desenvolvimento
+npm run start:dev          # Inicia com hot-reload
+npm run start:debug        # Inicia em modo debug
+
+# Produção
+npm run build              # Compila o projeto
+npm run start:prod         # Inicia versão compilada
+
+# Database
+npm run prisma:generate    # Gera cliente Prisma
+npm run prisma:migrate     # Executa migrações
+npm run prisma:studio      # Interface visual do banco
+npm run prisma:seed        # Popula banco com dados iniciais
+
+# Qualidade de Código
+npm run lint               # Executa ESLint
+npm run format             # Formata código com Prettier
+npm run test               # Executa testes unitários
+npm run test:e2e           # Executa testes e2e
 ```
+
+## 🏗️ Arquitetura
+
+```
+src/
+├── auth/                  # Autenticação e autorização
+│   ├── decorators/        # Decorators customizados
+│   ├── dto/              # Data Transfer Objects
+│   ├── guards/           # Guards de autenticação
+│   └── strategies/       # Estratégias Passport
+├── config/               # Configurações
+├── filters/              # Filtros globais
+├── interceptors/         # Interceptors
+├── types/                # Tipos TypeScript
+├── gateway/              # WebSocket Gateway
+├── orders/               # Módulo de pedidos
+├── reservations/         # Módulo de reservas
+├── tables/               # Módulo de mesas
+├── queue/                # Módulo de fila
+└── users/                # Módulo de usuários
+```
+
+## 🔒 Recursos de Segurança
+
+### Autenticação
+- JWT com expiração configurável
+- Senhas hasheadas com bcrypt (12 rounds)
+- Validação de força de senha
+- Proteção contra ataques de força bruta
+
+### Rate Limiting
+- 100 requisições por 15 minutos por IP
+- Proteção contra DDoS
+- Headers informativos
+
+### Headers de Segurança
+- Helmet.js configurado
+- Content Security Policy
+- XSS Protection
+- CSRF Protection
+
+### Sanitização
+- Input sanitization automática
+- Remoção de scripts maliciosos
+- Validação de tipos estritos
+- Filtros de dados sensíveis
+
+## 📡 Endpoints da API
+
+### Autenticação
+```
+POST /auth/login          # Login de usuário
+POST /auth/register       # Registro de usuário
+```
+
+### Mesas
+```
+GET    /tables            # Listar todas as mesas
+GET    /tables/available  # Mesas disponíveis
+POST   /tables            # Criar mesa (ADMIN)
+PATCH  /tables/:id/status # Atualizar status (ADMIN)
+```
+
+### Reservas
+```
+GET    /reservations      # Listar reservas
+POST   /reservations      # Criar reserva
+DELETE /reservations/:id  # Cancelar reserva
+```
+
+### Pedidos
+```
+GET    /orders            # Listar pedidos
+POST   /orders            # Criar pedido
+PATCH  /orders/:id/status # Atualizar status
+```
+
+### Fila
+```
+GET    /queue             # Listar fila
+POST   /queue/join        # Entrar na fila
+DELETE /queue/leave       # Sair da fila
+```
+
+## 🔌 WebSocket Events
+
+### Cliente → Servidor
+- `join-room` - Entrar em sala
+- `leave-room` - Sair da sala
+- `get-tables` - Buscar mesas
+- `get-reservations` - Buscar reservas
+- `get-orders` - Buscar pedidos
+- `get-queue` - Buscar fila
+
+### Servidor → Cliente
+- `tables-updated` - Mesas atualizadas
+- `reservations-updated` - Reservas atualizadas
+- `orders-updated` - Pedidos atualizados
+- `queue-updated` - Fila atualizada
+- `table-available` - Mesa disponível
+- `user-queue-position` - Posição na fila
+
+## 🧪 Testes
+
+```bash
+# Testes unitários
+npm run test
+
+# Testes e2e
+npm run test:e2e
+
+# Coverage
+npm run test:cov
+```
+
+## 🐳 Docker
+
+```bash
+# Build da imagem
+docker build -t fastfood-backend .
+
+# Executar container
+docker run -p 3001:3001 fastfood-backend
+```
+
+## 📊 Monitoramento
+
+- Logs estruturados com Winston
+- Métricas de performance
+- Health checks
+- Error tracking
 
 ## 🚀 Deploy
 
-### Backend (Railway/Render)
-1. Conecte seu repositório ao Railway ou Render
-2. Configure as variáveis de ambiente
-3. O deploy será automático
+### Produção
+```bash
+npm run build
+npm run start:prod
+```
 
-### Frontend (Vercel)
-1. Conecte seu repositório ao Vercel
-2. Configure a variável `NEXT_PUBLIC_BACKEND_URL`
-3. O deploy será automático
-
-## 📱 Como Usar
-
-### Para Clientes
-1. Acesse a aplicação
-2. Faça login ou crie uma conta
-3. Visualize as mesas disponíveis
-4. Reserve uma mesa ou entre na fila de espera
-5. Acompanhe seu pedido em tempo real
-
-### Para Administradores
-1. Faça login como admin
-2. Acesse o dashboard
-3. Gerencie o status das mesas
-4. Monitore pedidos e fila de espera
-5. Notifique clientes quando mesas ficarem disponíveis
-
-## 🔒 Autenticação
-
-O sistema utiliza JWT para autenticação:
-- Tokens são armazenados no localStorage
-- Interceptadores automáticos adicionam o token nas requisições
-- Redirecionamento automático para login em caso de token inválido
-
-## ⚡ Tempo Real
-
-Socket.io é utilizado para:
-- Atualização do status das mesas
-- Notificações de disponibilidade
-- Atualização da fila de espera
-- Status dos pedidos
+### Variáveis de Produção
+- `NODE_ENV=production`
+- `JWT_SECRET` (obrigatório)
+- `DATABASE_URL` (obrigatório)
+- `BCRYPT_ROUNDS=12`
+- `RATE_LIMIT_MAX=50`
 
 ## 🤝 Contribuição
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
+1. Fork o projeto
+2. Crie uma branch (`git checkout -b feature/nova-feature`)
+3. Commit suas mudanças (`git commit -m 'feat: adiciona nova feature'`)
+4. Push para a branch (`git push origin feature/nova-feature`)
 5. Abra um Pull Request
 
 ## 📄 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
-## 🎯 Roadmap
-
-- [ ] Integração com sistemas de pagamento
-- [ ] App mobile (React Native)
-- [ ] Relatórios e analytics
-- [ ] Integração com delivery
-- [ ] Sistema de avaliações
-- [ ] Notificações push
-
----
-
-Desenvolvido com ❤️ para otimizar o gerenciamento de mesas em restaurantes fastfood.
-# Backend-mesas-faastfood

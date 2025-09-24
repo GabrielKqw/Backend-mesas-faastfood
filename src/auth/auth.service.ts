@@ -1,5 +1,6 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { UserWithoutPassword } from '../types';
@@ -9,6 +10,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<UserWithoutPassword | null> {
@@ -21,9 +23,17 @@ export class AuthService {
   }
 
   async login(user: UserWithoutPassword) {
-    const payload = { email: user.email, sub: user.id, role: user.role };
+    const payload = { 
+      email: user.email, 
+      sub: user.id, 
+      role: user.role 
+    };
+    
+    const secret = this.configService.get<string>('security.jwt.secret');
+    const expiresIn = this.configService.get<string>('security.jwt.expiresIn');
+    
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(payload, { secret, expiresIn }),
       user: {
         id: user.id,
         email: user.email,
@@ -34,7 +44,18 @@ export class AuthService {
   }
 
   async register(email: string, password: string, name: string) {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const existingUser = await this.usersService.findByEmail(email);
+    if (existingUser) {
+      throw new ConflictException('Email já está em uso');
+    }
+
+    if (password.length < 8) {
+      throw new UnauthorizedException('Senha deve ter pelo menos 8 caracteres');
+    }
+
+    const rounds = this.configService.get<number>('security.bcrypt.rounds');
+    const hashedPassword = await bcrypt.hash(password, rounds);
+    
     return this.usersService.create({
       email,
       password: hashedPassword,
